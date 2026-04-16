@@ -1,8 +1,11 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Player : MonoBehaviour
 {
+    public int coins;
+
     public int health = 100;
     public float moveSpeed = 5f;
     public float jumpForce = 10f;
@@ -27,13 +30,20 @@ public class Player : MonoBehaviour
     void Update()
     {
        float moveInput = Input.GetAxis("Horizontal");
-       rb.linearVelocity = new Vector2(moveInput * moveSpeed, rb.linearVelocity.y);
-
+       // manual input: rb.linearVelocity = new Vector2(moveInput * moveSpeed, rb.linearVelocity.y);
+       // always move right
+       float finalSpeed = moveSpeed + moveInput;
+       rb.linearVelocity = new Vector2(finalSpeed, rb.linearVelocity.y);
        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
        {
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
        }
        SetAnimation(moveInput);
+
+       if(transform.position.y < -10)
+       {
+            Die();
+       }
     }
 
     private void FixedUpdate()
@@ -47,16 +57,27 @@ public class Player : MonoBehaviour
 
     private void SetAnimation(float moveInput)
     {
-        if (isGrounded)
+        // if (isGrounded)
+        // {
+            // if (moveInput == 0)
+            // {
+               // animator.Play("Player_Idle");
+           // }
+           // else
+            //{
+               // animator.Play("Player_Run");
+           // }
+        //}
+
+        if (!isGrounded) return;
+
+        if (Mathf.Abs(rb.linearVelocity.x) > 0.1f)
         {
-            if (moveInput == 0)
-            {
-                animator.Play("Player_Idle");
-            }
-            else
-            {
-                animator.Play("Player_Run");
-            }
+            animator.Play("Player_Run");
+        }
+        else
+        {
+            animator.Play("Player_Idle");
         }
     }
 
