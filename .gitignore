@@ -67,3 +67,4 @@ il2cppOutput/
 
 # ========== Generated Meta Files (IMPORTANT: DON'T IGNORE META FILES!) ==========
 # *.meta  <-- NIET toevoegen!
+.env
