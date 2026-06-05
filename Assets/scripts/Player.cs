@@ -4,6 +4,18 @@ using UnityEngine.UI;
 
 public class Player : MonoBehaviour
 {
+
+    public void SaveCoins()
+    {
+    if (supabase != null)
+    {
+        supabase.UpdateCoins(playerId, coins);
+        Debug.Log("Coins saved: " + coins);
+    }
+    }
+    
+    public SupabaseManager supabase;
+    public int playerId = 1;
     public int coins;
 
     public int health = 100;
@@ -20,42 +32,51 @@ public class Player : MonoBehaviour
 
     public SpriteRenderer spriteRenderer;
 
-    [Header("Game Over")]
-    public GameOverManager gameOverManager;
-    private bool isDead = false;
-
-    void Start()
+   void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
-        animator = GetComponent<Animator>();
-        spriteRenderer = GetComponent<SpriteRenderer>();
+    rb = GetComponent<Rigidbody2D>();
+    animator = GetComponent<Animator>();
+    spriteRenderer = GetComponent<SpriteRenderer>();
+
+    if (supabase != null)
+    {
+        supabase.LoadCoins(playerId);
+    }
     }
 
     void Update()
     {
-        if (isDead) return;
+       float moveInput = Input.GetAxis("Horizontal");
+       // manual input: rb.linearVelocity = new Vector2(moveInput * moveSpeed, rb.linearVelocity.y);
+       // always move right
+       float finalSpeed = moveSpeed + moveInput;
+       rb.linearVelocity = new Vector2(finalSpeed, rb.linearVelocity.y);
+       if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+       {
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
+       }
+       SetAnimation(moveInput);
 
-        float moveInput = Input.GetAxis("Horizontal");
-        rb.linearVelocity = new Vector2(moveInput * moveSpeed, rb.linearVelocity.y);
-
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
-        {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
-        }
-
-        SetAnimation(moveInput);
-
-        if (transform.position.y < -10)
-        {
+       if(transform.position.y < -10)
+       {
             Die();
-        }
+       }
     }
+
+    public void SetCoins(int amount)
+{
+    coins = amount;
+
+    GameObject.FindWithTag("CoinText")
+        .GetComponent<TMPro.TextMeshProUGUI>()
+        .text = coins.ToString();
+
+    Debug.Log("Loaded coins: " + coins);
+}
 
     private void FixedUpdate()
     {
-        if (isDead) return;
-
-        isGrounded = Physics2D.OverlapCircle(
+        isGrounded = Physics2D.OverlapCircle( 
             groundCheck.position,
             groundCheckRadius,
             groundLayer
@@ -64,36 +85,44 @@ public class Player : MonoBehaviour
 
     private void SetAnimation(float moveInput)
     {
-        if (isGrounded)
+        // if (isGrounded)
+        // {
+            // if (moveInput == 0)
+            // {
+               // animator.Play("Player_Idle");
+           // }
+           // else
+            //{
+               // animator.Play("Player_Run");
+           // }
+        //}
+
+        if (!isGrounded) return;
+
+        if (Mathf.Abs(rb.linearVelocity.x) > 0.1f)
         {
-            if (moveInput == 0)
-            {
-                animator.Play("Player_Idle");
-            }
-            else
-            {
-                animator.Play("Player_Run");
-            }
+            animator.Play("Player_Run");
+        }
+        else
+        {
+            animator.Play("Player_Idle");
         }
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (isDead) return;
-
-        if (collision.gameObject.CompareTag("Damage"))
+        if(collision.gameObject.tag == "Damage")
         {
             health -= 100;
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
             StartCoroutine(BlinkRed());
 
-            if (health <= 0)
+            if(health <= 0)
             {
                 Die();
             }
         }
     }
-
     private IEnumerator BlinkRed()
     {
         spriteRenderer.color = Color.red;
@@ -103,17 +132,6 @@ public class Player : MonoBehaviour
 
     private void Die()
     {
-        if (isDead) return;
-
-        isDead = true;
-
-        if (gameOverManager != null)
-        {
-            gameOverManager.GameOver();
-        }
-        else
-        {
-            Debug.LogError("GameOverManager is not assigned on the Player!");
-        }
+        UnityEngine.SceneManagement.SceneManager.LoadScene("GameScene");
     }
 }
