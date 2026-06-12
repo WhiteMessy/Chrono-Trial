@@ -16,6 +16,7 @@ public class Player : MonoBehaviour
     public SupabaseManager supabase;
     public int playerId = 1;
     public int coins;
+    public float bestTime;
 
     public int health = 100;
     public float moveSpeed = 5f;
@@ -41,9 +42,13 @@ public class Player : MonoBehaviour
     animator = GetComponent<Animator>();
     spriteRenderer = GetComponent<SpriteRenderer>();
 
+    string username = PlayerPrefs.GetString("Username");
+
+    Debug.Log("Username from PlayerPrefs: " + username);
+
     if (supabase != null)
     {
-        supabase.LoadCoins(playerId);
+        supabase.LoadCoins(username);
     }
     }
 
