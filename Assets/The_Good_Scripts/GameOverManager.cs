@@ -22,29 +22,55 @@ public class GameOverManager : MonoBehaviour
     }
 
     public void GameOver()
-    {
-        stopwatchTimer.StopTimer();
+{
+    stopwatchTimer.StopTimer();
 
-        if (playerMovement != null)
-        {
-            playerMovement.enabled = false;
-        }
-        float finalTime = stopwatchTimer.GetTime();
-        float highScore = PlayerPrefs.GetFloat(HighScoreKey, 0f);
+    if (playerMovement != null)
+    {
+        playerMovement.enabled = false;
+    }
+
+    float finalTime = stopwatchTimer.GetTime();
+
+    Player player = FindFirstObjectByType<Player>();
+
+    float highScore = 0f;
+
+    if (player != null)
+    {
+        highScore = player.bestTime;
 
         if (finalTime > highScore)
         {
             highScore = finalTime;
-            PlayerPrefs.SetFloat(HighScoreKey, highScore);
-            PlayerPrefs.Save();
+            player.bestTime = highScore;
+
+            if (player.supabase != null)
+            {
+                Debug.Log("Saving best time: " + highScore);
+                Debug.Log("Player ID: " + player.playerId);
+
+                player.supabase.UpdateBestTime(
+                    player.playerId,
+                    highScore
+                );
+            }
         }
+    }
 
-        finalTimeText.text = "Time: " + stopwatchTimer.FormatTime(finalTime);
-        highScoreText.text = "Best: " + stopwatchTimer.FormatTime(highScore);
+    finalTimeText.text =
+        "Time: " + stopwatchTimer.FormatTime(finalTime);
 
-        gameOverPanel.SetActive(true);
+    highScoreText.text =
+        "Best: " + stopwatchTimer.FormatTime(highScore);
+
+    gameOverPanel.SetActive(true);
+
+    if (autoScroll != null)
+    {
         autoScroll.scrollingActive = false;
     }
+}
 
     public void RestartGame()
     {
