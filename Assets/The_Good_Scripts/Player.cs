@@ -14,7 +14,7 @@ public class Player : MonoBehaviour
     }
     }
     public SupabaseManager supabase;
-    public int playerId = 1;
+    public int playerId = 0;
     public int coins;
     public float bestTime;
 
